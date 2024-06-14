@@ -25,8 +25,8 @@ using namespace xlnt;
 const string KnownPointName = "c02";    //已知点名称
 const double KnownNumberHeight = 33.83300;//已知点高程
 const double SettlementRateLimit = 0.04;  //沉降速率限差
-const vector<string>RegionName = {"连云港新富海仓储有限公司旗台作业区液体化工品罐区工程非桩基础构筑物沉降观测成果表（一）",
-"连云港新富海仓储有限公司旗台作业区液体化工品罐区工程桩基础构筑物沉降观测成果表（一）"};    //区域名称
+const vector<string>RegionName = {"连云港新富海仓储有限公司旗台作业区液体化工品罐区工程桩基础构筑物沉降观测成果表（一）",
+"连云港新富海仓储有限公司旗台作业区液体化工品罐区工程非桩基础构筑物沉降观测成果表（一）"};    //区域名称
 const string ProjectName = "连云港新富海仓储有限公司旗台作业区液体化工品罐区工程沉降观测";  //工程名称
 const string CompanyName = "连云港港口工程设计研究院有限公司";                          //公司名称
 const string NewestMeasureData = "";                //最新一期的测量日期
@@ -130,11 +130,42 @@ public:
 		{
 			if (i == 0)
 			{
-				res.push_back(0);
+				if (cl_height[i] != -100)
+				{
+					res.push_back(0);
+				}
+				else
+				{
+					res.push_back(-1000);
+				}
 			}
 			else
 			{
-				res.push_back(cl_height[i] - cl_height[i - 1]);
+				if (cl_height[i] == -100)
+				{
+					res.push_back(0);
+				}
+				else
+				{
+					bool check = false;
+					for (int j = i - 1; j >= 0; j--)
+					{
+						if (cl_height[j] == -100)
+						{
+							continue;
+						}
+						else
+						{
+							check = true;
+							res.push_back(cl_height[i] - cl_height[j]);
+							break;
+						}
+					}
+					if (!check)
+					{
+						res.push_back(0);
+					}
+				}
 			}
 		}
 		this->SettlementAmount = res;
@@ -148,16 +179,35 @@ public:
 		{
 			if (i == 0)
 			{
-				res.push_back(0);
+				if (cl_height[i] != -100)
+				{
+					res.push_back(0);
+				}
+				else
+				{
+					res.push_back(-1000);
+				}
 			}
 			else
 			{
-				double CurrentASettlementAmount = 0;
-				for (int j = 0; j <= i; j++)
+				if (cl_height[i] == -100)
 				{
-					CurrentASettlementAmount += SettlementAmount[j];
+					res.push_back(-1000);
 				}
-				res.push_back(CurrentASettlementAmount);
+				else
+				{
+					double CurrentASettlementAmount = 0;
+					CurrentASettlementAmount += this->SettlementAmount[i];
+					for (int j = i-1; j>=0; j--)
+					{
+						if (cl_height[j] != -100)
+						{
+							CurrentASettlementAmount += res[j];
+							break;
+						}
+					}
+					res.push_back(CurrentASettlementAmount);
+				}
 			}
 		}
 		this->AccumulateSettlementAmount = res;
@@ -172,18 +222,47 @@ public:
 		{
 			if (i == 0)
 			{
-				res.push_back(0);
+				if (cl_height[i] != -100)
+				{
+					res.push_back(0);
+				}
+				else
+				{
+					res.push_back(-1000);
+				}
 			}
 			else
 			{
-				string f_time = cl_data[i - 1];
-				string b_time = cl_data[i];
-				auto f_time_result = splitData(f_time);
-				auto b_time_result = splitData(b_time);
-				//计算时间间隔
-				double interval_time = calculateTimeInterval(f_time_result, b_time_result);
-				//计算沉降速度
-				res.push_back(SettlementAmount[i] / interval_time);
+				if (cl_height[i] == -100)
+				{
+					res.push_back(-1000);
+				}
+				else
+				{
+					string f_time = "";
+					string b_time = cl_data[i];
+					for (int j = i - 1; j >= 0; j--)
+					{
+						if (cl_height[j] != -100)
+						{
+							f_time = cl_data[j];
+							break;
+						}
+					}
+					if (f_time == "")
+					{
+						res.push_back(0);
+					}
+					else
+					{
+						auto f_time_result = splitData(f_time);
+						auto b_time_result = splitData(b_time);
+						//计算时间间隔
+						double interval_time = calculateTimeInterval(f_time_result, b_time_result);
+						//计算沉降速度
+						res.push_back(SettlementAmount[i] / interval_time);
+					}
+				}
 			}
 		}
 		this->SettlementSpeed = res;
@@ -501,6 +580,7 @@ public:
 					//读第一行，将该区域所有观测日期读入
 					if (c1 == 0 && cell.has_value())
 					{
+						cout << cell.to_string() << endl;
 						time.push_back(UTF8_To_string(cell.to_string()));
 					}
 					//读到观测日期这一行
@@ -598,7 +678,7 @@ public:
 					cout << this->qy[i].ContainGZW[j].ContainSettlementPoint[k].name << " ";
 					for (int m = 0; m < this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height.size(); m++)
 					{
-						cout << std::fixed << std::setprecision(3)<< this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height[m] << " ";
+						cout << std::fixed << std::setprecision(3) << this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height[m] << " ";
 					}
 					cout << endl;
 				}
@@ -897,7 +977,42 @@ public:
 	//计算各种变量
 	void calculateVariable()
 	{
-
+		//计算沉降量、累积沉降量、沉降速度
+		for (int i = 0; i < this->qy.size(); i++)
+		{
+			for (int j = 0; j < this->qy[i].ContainGZW.size(); j++)
+			{
+				for (int k = 0; k < this->qy[i].ContainGZW[j].ContainSettlementPoint.size(); k++)
+				{
+					//计算沉降量
+					this->qy[i].ContainGZW[j].ContainSettlementPoint[k].calculateSettlementAmount();
+					//计算累积沉降量
+					this->qy[i].ContainGZW[j].ContainSettlementPoint[k].calculateASettlementAmount();
+					//计算沉降速度
+					this->qy[i].ContainGZW[j].ContainSettlementPoint[k].calculateSettlementSpeed();
+				}
+			}
+		}
+		//测试
+		for (int i = 0; i < this->qy.size(); i++)
+		{
+			for (int j = 0; j < this->qy[i].ContainGZW.size(); j++)
+			{
+				cout << this->qy[i].ContainGZW[j].name << endl;
+				for (int k = 0; k < this->qy[i].ContainGZW[j].ContainSettlementPoint.size(); k++)
+				{
+					cout << this->qy[i].ContainGZW[j].ContainSettlementPoint[k].name << " ";
+					for (int m = 0; m < this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height.size(); m++)
+					{
+						cout << this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height[m] << " " <<
+							this->qy[i].ContainGZW[j].ContainSettlementPoint[k].SettlementAmount[m] << " " <<
+							this->qy[i].ContainGZW[j].ContainSettlementPoint[k].AccumulateSettlementAmount[m] << " " <<
+							this->qy[i].ContainGZW[j].ContainSettlementPoint[k].SettlementSpeed[m] << " ";
+					}
+					cout << endl;
+				}
+			}
+		}
 	}
 };
 

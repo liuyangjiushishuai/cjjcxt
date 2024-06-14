@@ -17,6 +17,7 @@
 int main()
 {
 	Project P(2);
-	P.LoadData("E:/ceshishuju/ceshi.xlsx");
+	P.LoadData("D:/ce/ceshi.xlsx");
+	P.calculateVariable();
     return 0;
 }
