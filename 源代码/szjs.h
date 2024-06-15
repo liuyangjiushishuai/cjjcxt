@@ -143,7 +143,7 @@ public:
 			{
 				if (cl_height[i] == -100)
 				{
-					res.push_back(0);
+					res.push_back(-1000);
 				}
 				else
 				{
@@ -580,7 +580,6 @@ public:
 					//读第一行，将该区域所有观测日期读入
 					if (c1 == 0 && cell.has_value())
 					{
-						cout << cell.to_string() << endl;
 						time.push_back(UTF8_To_string(cell.to_string()));
 					}
 					//读到观测日期这一行
