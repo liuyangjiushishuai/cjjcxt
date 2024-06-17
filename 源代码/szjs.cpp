@@ -31,6 +31,106 @@ std::string UTF8_To_string(const std::string& str)
 
 	return retStr;
 }
+double SaveThreeDecimal(double OriginalData)
+{
+	string c_str2 = to_string(OriginalData);
+	string c_str = to_string(abs(OriginalData));
+	/*cout << c_str << endl;*/
+	/*cout << c_str2 << endl;*/
+	vector<int>z;
+	string t;
+	bool check = false;
+	int count = 0;
+	for (int i = 0; i < c_str.size(); i++)
+	{
+		if (!check)
+		{
+			if (c_str[i] == '.')
+			{
+				z.push_back(stoi(t));
+				check = true;
+			}
+			else
+			{
+				t += c_str[i];
+			}
+		}
+		else
+		{
+			if (count < 4)
+			{
+				string T;
+				T += c_str[i];
+				z.push_back(stoi(T));
+				count++;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	for (int i = z.size() - 1; i >= 0; i--)
+	{
+		if (i == 4)
+		{
+			if (z[i] >= 5)
+			{
+				z[i - 1] += 1;
+			}
+		}
+		else if (i > 0 && i < 4)
+		{
+			if (z[i] >= 10)
+			{
+				z[i] = 0;
+				z[i - 1]++;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	string t2;
+	if (c_str2[0] == '-')
+	{
+		t2 += '-';
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		if (i == 0)
+		{
+			t2 += to_string(z[i]);
+			t2 += '.';
+		}
+		else
+		{
+			t2 += to_string(z[i]);
+		}
+	}
+
+	int count2 = 0;
+	for (int i = 0; i < t2.size(); i++)
+	{
+		if (isdigit(t2[i]))
+		{
+			if (t2[i] == '0')
+			{
+				count2++;
+			}
+		}
+	}
+	if (count2 == 4)
+	{
+		if (t2[0] == '-')
+		{
+			t2.erase(t2.begin());
+		}
+	}
+	double res = stod(t2);
+	return res;
+}
 //将日期化为年、月、日
 vector<int>splitData(const string data)
 {

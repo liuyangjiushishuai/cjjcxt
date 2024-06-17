@@ -43,6 +43,8 @@ int calculateTimeInterval(const vector<int>f, const vector<int>b);
 //UTF-8编码格式字符串 转普通sting类型
 std::string UTF8_To_string(const std::string& str);
 
+//保留三位小数
+double SaveThreeDecimal(double OriginalData);
 //测站
 class cz
 {
@@ -1005,8 +1007,8 @@ public:
 					{
 						cout << this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height[m] << " " <<
 							this->qy[i].ContainGZW[j].ContainSettlementPoint[k].SettlementAmount[m] << " " <<
-							this->qy[i].ContainGZW[j].ContainSettlementPoint[k].AccumulateSettlementAmount[m] << " " <<
-							this->qy[i].ContainGZW[j].ContainSettlementPoint[k].SettlementSpeed[m] << " ";
+							this->qy[i].ContainGZW[j].ContainSettlementPoint[k].AccumulateSettlementAmount[m] << " " <<fixed<<setprecision(3)<<
+							SaveThreeDecimal(this->qy[i].ContainGZW[j].ContainSettlementPoint[k].SettlementSpeed[m])<< " ";
 					}
 					cout << endl;
 				}
