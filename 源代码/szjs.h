@@ -278,6 +278,10 @@ public:
 	string name;    //构筑物名称
 	int SettlementPointNum; //包含的沉降点数
 	int frequency;        //该构筑物测量期数
+	double LatestMaxAccumulateSettlementAmount;      //最后一期最大累积沉降量
+	double LatestMinAccumulateSettlementAmount;      //最后一期最小累积沉降量
+	double LatestMaxSettlementRate;                //最后一期最大沉降速度
+	double LatestMinSettlementRate;               //最后一期最小沉降速度
 	vector<cj_point>ContainSettlementPoint; //包含的沉降点
 	vector<double>AverageSettlementAmount; //每期的平均沉降量
 	vector<double>AverageSettlementRate;   //每期的平均沉降速度
@@ -295,11 +299,23 @@ public:
 		for (int i = 0; i < frequency; i++)
 		{
 			double CurrentAllSettlementAmount = 0;
+			int CurrentSettlementPointNum = 0;
 			for (int j = 0; j < ContainSettlementPoint.size(); j++)
 			{
-				CurrentAllSettlementAmount += ContainSettlementPoint[j].SettlementAmount[i];
+				if (ContainSettlementPoint[j].SettlementAmount[i] != -1000)
+				{
+					CurrentSettlementPointNum++;
+					CurrentAllSettlementAmount += ContainSettlementPoint[j].SettlementAmount[i];
+				}
 			}
-			AverageSettlementAmount.push_back(CurrentAllSettlementAmount / SettlementPointNum);
+			if (CurrentSettlementPointNum == 0)
+			{
+				AverageSettlementAmount.push_back(-1000);
+			}
+			else
+			{
+				AverageSettlementAmount.push_back(CurrentAllSettlementAmount / CurrentSettlementPointNum);
+			}
 		}
 	}
 	//计算每期的平均沉降速度
@@ -308,11 +324,20 @@ public:
 		for (int i = 0; i < frequency; i++)
 		{
 			double CurrentSettlementSpeed = 0;
+			int CurrentSettlePointNum = 0;
 			for (int j = 0; j < ContainSettlementPoint.size(); j++)
 			{
-				CurrentSettlementSpeed += ContainSettlementPoint[j].SettlementSpeed[i];
+				if (ContainSettlementPoint[j].SettlementSpeed[i] != -1000)
+				{
+					CurrentSettlePointNum++;
+					CurrentSettlementSpeed += ContainSettlementPoint[j].SettlementSpeed[i];
+				}
 			}
-			AverageSettlementRate.push_back(CurrentSettlementSpeed / SettlementPointNum);
+			if (CurrentSettlePointNum == 0)
+			{
+				AverageSettlementRate.push_back(-1000);
+			}
+			AverageSettlementRate.push_back(CurrentSettlementSpeed / CurrentSettlePointNum);
 		}
 	}
 	//计算每期的平均累积沉降量
@@ -321,67 +346,107 @@ public:
 		for (int i = 0; i < frequency; i++)
 		{
 			double CurrentAccumulateSettlementAmount = 0;
+			int CurrentSettlementPointNum = 0;
 			for (int j = 0; j < ContainSettlementPoint.size(); j++)
 			{
-				CurrentAccumulateSettlementAmount += ContainSettlementPoint[j].AccumulateSettlementAmount[i];
+				if (ContainSettlementPoint[j].AccumulateSettlementAmount[i] != -1000)
+				{
+					CurrentSettlementPointNum++;
+					CurrentAccumulateSettlementAmount += ContainSettlementPoint[j].AccumulateSettlementAmount[i];
+				}
 			}
-			AverageAccumulateSettlementAmount.push_back(CurrentAccumulateSettlementAmount / SettlementPointNum);
+			if (CurrentSettlementPointNum == 0)
+			{
+				AverageAccumulateSettlementAmount.push_back(-1000);
+			}
+			else
+			{
+				AverageAccumulateSettlementAmount.push_back(CurrentAccumulateSettlementAmount / CurrentSettlementPointNum);
+			}
 		}
 	}
 	//计算最后一期最大累积沉降量
 	double calcualteMaxAccumulateSettlementAmount()
 	{
-		double res = -1;
+		double CompareValue =0;
+		double res = 0;
 		for (int i = 0; i < ContainSettlementPoint.size(); i++)
 		{
 			double CurrentAccumulateSettlementAmount = ContainSettlementPoint[i].AccumulateSettlementAmount[frequency - 1];
-			if (CurrentAccumulateSettlementAmount > res)
+			if (CurrentAccumulateSettlementAmount == -1000)
 			{
+				continue;
+			}
+			if (fabs(fabs(CurrentAccumulateSettlementAmount)-CompareValue) >1e-6&& fabs(CurrentAccumulateSettlementAmount)> CompareValue)
+			{
+				CompareValue = fabs(CurrentAccumulateSettlementAmount);
 				res = CurrentAccumulateSettlementAmount;
 			}
 		}
+		this->LatestMaxAccumulateSettlementAmount=res;      //最后一期最大累积沉降量
 		return res;
 	}
 	//计算最后一期的最小累积沉降量
 	double calcualteMinAccumulateSettlementAmount()
 	{
+		double CompareValue = 1000000;   
 		double res = 1000000;
 		for (int i = 0; i < ContainSettlementPoint.size(); i++)
 		{
 			double CurrentAccumulateSettlementAmount = ContainSettlementPoint[i].AccumulateSettlementAmount[frequency - 1];
-			if (CurrentAccumulateSettlementAmount < res)
+			if (CurrentAccumulateSettlementAmount == -1000)
 			{
+				continue;
+			}
+			if (fabs(fabs(CurrentAccumulateSettlementAmount) - CompareValue) > 1e-6 && fabs(CurrentAccumulateSettlementAmount) < CompareValue)
+			{
+				CompareValue = fabs(CurrentAccumulateSettlementAmount);
 				res = CurrentAccumulateSettlementAmount;
 			}
 		}
+		this->LatestMinAccumulateSettlementAmount=res;      //最后一期最小累积沉降量
 		return res;
 	}
 	//计算最后一期的最大沉降速度
 	double calcualteMaxSettlementRate()
 	{
-		double res = -1;
+		double CompareValue = 0;
+		double res = 0;
 		for (int i = 0; i < ContainSettlementPoint.size(); i++)
 		{
 			double CurrentSettlementRate = ContainSettlementPoint[i].SettlementSpeed[frequency - 1];
-			if (CurrentSettlementRate > res)
+			if (CurrentSettlementRate == -1000)
 			{
+				continue;
+			}
+			if (fabs(fabs(CurrentSettlementRate) - CompareValue) > 1e-6 && fabs(CurrentSettlementRate) > CompareValue)
+			{
+				CompareValue = fabs(CurrentSettlementRate);
 				res = CurrentSettlementRate;
 			}
 		}
+		this->LatestMaxSettlementRate=res;                //最后一期最大沉降速度
 		return res;
 	}
 	//计算最后一期的最小沉降速度
 	double calcualteMinSettlementRate()
 	{
+		double CompareValue = 1000000;
 		double res = 1000000;
 		for (int i = 0; i < ContainSettlementPoint.size(); i++)
 		{
 			double CurrentSettlementRate = ContainSettlementPoint[i].SettlementSpeed[frequency - 1];
-			if (CurrentSettlementRate < res)
+			if (CurrentSettlementRate == -1000)
 			{
+				continue;
+			}
+			if (fabs(fabs(CurrentSettlementRate) - CompareValue) > 1e-6 && fabs(CurrentSettlementRate) < CompareValue)
+			{
+				CompareValue = fabs(CurrentSettlementRate);
 				res = CurrentSettlementRate;
 			}
 		}
+		this->LatestMinSettlementRate=res;
 		return res;
 	}
 };
@@ -994,26 +1059,41 @@ public:
 				}
 			}
 		}
-		//测试
+		//计算每期的平均沉降量、平均沉降速度、平均累积沉降量，最后一期的最大、最小累积沉降量、最后一期的最大、最小沉降速度
 		for (int i = 0; i < this->qy.size(); i++)
 		{
 			for (int j = 0; j < this->qy[i].ContainGZW.size(); j++)
 			{
-				cout << this->qy[i].ContainGZW[j].name << endl;
-				for (int k = 0; k < this->qy[i].ContainGZW[j].ContainSettlementPoint.size(); k++)
-				{
-					cout << this->qy[i].ContainGZW[j].ContainSettlementPoint[k].name << " ";
-					for (int m = 0; m < this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height.size(); m++)
-					{
-						cout << this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height[m] << " " <<
-							this->qy[i].ContainGZW[j].ContainSettlementPoint[k].SettlementAmount[m] << " " <<
-							this->qy[i].ContainGZW[j].ContainSettlementPoint[k].AccumulateSettlementAmount[m] << " " <<fixed<<setprecision(3)<<
-							SaveThreeDecimal(this->qy[i].ContainGZW[j].ContainSettlementPoint[k].SettlementSpeed[m])<< " ";
-					}
-					cout << endl;
-				}
+				//计算每期的平均沉降量
+				//计算每期的平均累积沉降量
+				//计算每期的平均沉降速度
+				//计算最后一期的最大累积沉降量
+				//计算最后一期的最小累积沉降量
+				//计算最后一期的最大沉降速度
+				//计算最后一期的
 			}
 		}
+		////测试
+		//for (int i = 0; i < this->qy.size(); i++)
+		//{
+		//	for (int j = 0; j < this->qy[i].ContainGZW.size(); j++)
+		//	{
+		//		cout << this->qy[i].ContainGZW[j].name << endl;
+		//		for (int k = 0; k < this->qy[i].ContainGZW[j].ContainSettlementPoint.size(); k++)
+		//		{
+		//			cout << this->qy[i].ContainGZW[j].ContainSettlementPoint[k].name << " ";
+		//			for (int m = 0; m < this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height.size(); m++)
+		//			{
+		//				cout << this->qy[i].ContainGZW[j].ContainSettlementPoint[k].cl_height[m] << " " <<
+		//					this->qy[i].ContainGZW[j].ContainSettlementPoint[k].SettlementAmount[m] << " " <<
+		//					this->qy[i].ContainGZW[j].ContainSettlementPoint[k].AccumulateSettlementAmount[m] << " " <<fixed<<setprecision(3)<<
+		//					SaveThreeDecimal(this->qy[i].ContainGZW[j].ContainSettlementPoint[k].SettlementSpeed[m])<< " ";
+		//			}
+		//			cout << endl;
+		//		}
+		//	}
+		//}
+
 	}
 };
 
