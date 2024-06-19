@@ -16,8 +16,8 @@
 //}
 int main()
 {
-	/*Project P(2);
+	Project P(2);
 	P.LoadData("D:/ce/ceshi.xlsx");
-	P.calculateVariable();*/
+	P.calculateVariable();
     return 0;
 }

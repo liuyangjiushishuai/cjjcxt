@@ -45,6 +45,9 @@ std::string UTF8_To_string(const std::string& str);
 
 //保留三位小数
 double SaveThreeDecimal(double OriginalData);
+
+//保留二位小数
+double SaveTwoDecimal(double OriginalData);
 //测站
 class cz
 {
@@ -1065,15 +1068,22 @@ public:
 			for (int j = 0; j < this->qy[i].ContainGZW.size(); j++)
 			{
 				//计算每期的平均沉降量
+				this->qy[i].ContainGZW[j].calculateEachIssueAverageSettlementAmount();
 				//计算每期的平均累积沉降量
+				this->qy[i].ContainGZW[j].calcualteEachIssueAverageAccumulateSettlementAmount();
 				//计算每期的平均沉降速度
+				this->qy[i].ContainGZW[j].calculateEachIssueAverageSettlementSpeed();
 				//计算最后一期的最大累积沉降量
+				this->qy[i].ContainGZW[j].calcualteMaxAccumulateSettlementAmount();
 				//计算最后一期的最小累积沉降量
+				this->qy[i].ContainGZW[j].calcualteMinAccumulateSettlementAmount();
 				//计算最后一期的最大沉降速度
-				//计算最后一期的
+				this->qy[i].ContainGZW[j].calcualteMaxSettlementRate();
+				//计算最后一期的最小沉降速度
+				this->qy[i].ContainGZW[j].calcualteMinSettlementRate();
 			}
 		}
-		////测试
+		//测试
 		//for (int i = 0; i < this->qy.size(); i++)
 		//{
 		//	for (int j = 0; j < this->qy[i].ContainGZW.size(); j++)
@@ -1093,7 +1103,20 @@ public:
 		//		}
 		//	}
 		//}
-
+		//测试
+		for (int i = 0; i < this->qy.size(); i++)
+		{
+			for (int j = 0; j < this->qy[i].ContainGZW.size(); j++)
+			{
+				for (int k = 0; k < this->qy[i].ContainGZW[j].AverageSettlementAmount.size(); k++)
+				{
+					cout << fixed << setprecision(2) << SaveTwoDecimal(this->qy[i].ContainGZW[j].AverageSettlementAmount[k]) << " " <<
+						SaveTwoDecimal(this->qy[i].ContainGZW[j].AverageAccumulateSettlementAmount[k]) <<" "<<fixed << setprecision(3) <<
+						SaveThreeDecimal(this->qy[i].ContainGZW[j].AverageSettlementRate[k])<< "  ";
+				}
+				cout << endl;
+			}
+		}
 	}
 };
 
